@@ -13,6 +13,8 @@ if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/importedcontent/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/importedcontent)
 endif()
 
+set_source_files_properties(ui/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
 qt_add_executable(appKasa
     main.cpp
 )
@@ -25,6 +27,16 @@ qt_add_qml_module(appKasa
         SOURCES model/credentialrepository.h model/credentialrepository.cpp
         SOURCES model/credentialmodel.h model/credentialmodel.cpp
         SOURCES controller/credentialcontroller.h controller/credentialcontroller.cpp
+        SOURCES model/credentialfiltermodel.h model/credentialfiltermodel.cpp
+        QML_FILES ui/Theme.qml
+        QML_FILES ui/NeonPanel.qml
+        QML_FILES ui/NeonField.qml
+        QML_FILES ui/TagButton.qml
+        QML_FILES ui/CopyRow.qml
+        QML_FILES ui/PasswordGenerator.qml
+        QML_FILES ui/EntryForm.qml
+        QML_FILES ui/CredentialCard.qml
+        QML_FILES ui/CredentialList.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

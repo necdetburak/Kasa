@@ -1,90 +1,170 @@
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Controls.Basic
-
+import QtQuick.Layouts
 
 ApplicationWindow {
-    id: window
-    width: 640
-    height: 480
-    minimumWidth: 200
-    minimumHeight: 250
+    id: root
+    width: 1440
+    height: 880
+    minimumWidth: 1000
+    minimumHeight: 820
     visible: true
-    title: qsTr("Hello World")
-    property bool lightMode: Application.styleHints.colorScheme === Qt.Light
-    property color reallyDark: "#1f1f1f"
-    property color dark: "#262626"
-    property color reallyLight: "#e7e7e7"
-    property color light: "#e0e0e0"
+    visibility: Window.Maximized
+    title: "Kasa"
+    color: Theme.bg
 
-    GridLayout {
-        id: grid
-        columns: width < 400 ? 1 : 2
-        rowSpacing: 0
-        columnSpacing: 0
+    // ---------- Izgara zemin ----------
+    Item {
         anchors.fill: parent
+        z: -1
 
-        Rectangle {
-            id: rectangle1
-            color: window.lightMode ? window.reallyLight : window.reallyDark
-            Layout.fillHeight: true
+        Repeater {
+            model: Math.ceil(root.width / 40)
+            Rectangle {
+                x: index * 40
+                width: 1
+                height: parent.height
+                color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.05)
+            }
+        }
+        Repeater {
+            model: Math.ceil(root.height / 40)
+            Rectangle {
+                y: index * 40
+                width: parent.width
+                height: 1
+                color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.05)
+            }
+        }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 28
+        spacing: 22
+
+        // ---------- Başlık ----------
+        RowLayout {
             Layout.fillWidth: true
+            spacing: 10
 
-            ColumnLayout {
-                anchors.fill: parent
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+            Text {
+                text: "KASA"
+                font.family: Theme.headFont
+                font.pixelSize: 38
+                font.bold: true
+                font.letterSpacing: 8
+                color: Theme.primary
+            }
+            Text {
+                text: "//"
+                font.family: Theme.headFont
+                font.pixelSize: 38
+                font.bold: true
+                color: Theme.secondary
+            }
+            Text {
+                Layout.alignment: Qt.AlignBottom
+                Layout.bottomMargin: 7
+                text: "secure_vault v0.1"
+                font.family: Theme.monoFont
+                font.pixelSize: 14
+                color: Theme.muted
+            }
+            Rectangle {
+                Layout.alignment: Qt.AlignBottom
+                Layout.bottomMargin: 7
+                width: 10
+                height: 18
+                color: Theme.primary
 
-                Label {
-                    id: text1
-                    color: window.lightMode ? window.dark : window.light
-                    font.pixelSize: 120
-                    fontSizeMode: Text.Fit
-                    text: qsTr("Hello World")
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.margins: 16
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                SequentialAnimation on opacity {
+                    loops: Animation.Infinite
+                    NumberAnimation { to: 0; duration: 500 }
+                    NumberAnimation { to: 1; duration: 500 }
                 }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            TagButton {
+                text: "[ THEME: " + Theme.name + " ]"
+                fontSize: 14
+                onClicked: Theme.next()
             }
         }
 
-        Rectangle {
-            id: rectangle2
-            color: window.lightMode ? window.light : window.dark
-            Layout.fillHeight: true
+        // ---------- Paneller ----------
+        RowLayout {
             Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 28
 
+            // ===== SOL SÜTUN: Form + Keygen =====
             ColumnLayout {
-                anchors.fill: parent
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+                Layout.preferredWidth: 400
+                Layout.minimumWidth: 400
+                Layout.maximumWidth: 400
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                spacing: 28
 
-                Button {
-                    id: button1
-                    text: window.lightMode ? qsTr("\u263D  Dark mode")
-                                           : qsTr("\u263C  Light mode")
-                    Layout.bottomMargin: 16
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                EntryForm {
+                    id: entryForm
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumHeight: implicitHeight
+                }
 
-                    contentItem: Text {
-                        text: button1.text
-                        color: window.lightMode ? window.light : window.dark
-                        font: button1.font
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                PasswordGenerator {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: implicitHeight
+                    onUseRequested: function(password) {
+                        entryForm.setPassword(password)
                     }
+                }
+            }
 
-                    background: Rectangle {
-                        implicitWidth: 120
-                        implicitHeight: 36
-                        radius: 8
-                        color: window.lightMode ? window.dark : window.light
-                    }
+            // ===== SAĞ SÜTUN: Kayıtlar =====
+            CredentialList {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                model: controller.filterModel
+                editingId: entryForm.editingId
 
-                    onClicked: window.lightMode = !window.lightMode
+                onEditRequested: function(credentialId, title, username, password, notes) {
+                    entryForm.startEdit(credentialId, title, username, password, notes)
+                }
+
+                onDeleteRequested: function(credentialId) {
+                    if (entryForm.editingId === credentialId)
+                        entryForm.clearForm()
+                    controller.removeCredential(credentialId)
                 }
             }
         }
     }
 
+    // ---------- Kayan tarama çizgisi ----------
+    Rectangle {
+        z: 100
+        width: parent.width
+        height: 2
+        color: Theme.primary
+        opacity: 0.07
+
+        NumberAnimation on y {
+            from: 0
+            to: root.height
+            duration: 6000
+            loops: Animation.Infinite
+        }
+    }
+
+    Connections {
+        target: controller
+        function onErrorOccurred(message) {
+            console.log("Hata:", message)
+        }
+    }
 }

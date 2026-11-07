@@ -14,7 +14,9 @@ public:
     enum Roles {
         IdRole = Qt::UserRole + 1,
         TitleRole,
-        // 1) kalan üç rolü ekle
+        UsernameRole,
+        PasswordRole,
+        NotesRole
     };
 
     explicit CredentialModel(QObject *parent = nullptr);
@@ -26,7 +28,7 @@ public:
     void setCredentials(const QList<Credential> &list);
 
 private:
-    // 2) verileri tutacak üye değişken
+    QList<Credential> m_credentials;
 };
 
 #endif // CREDENTIALMODEL_H
